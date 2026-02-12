@@ -1,6 +1,9 @@
 import { GoogleGenAI } from "@google/genai";
 
-const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY! });
+// Initialize with dummy key if missing (for build-time)
+const ai = new GoogleGenAI({
+  apiKey: process.env.GEMINI_API_KEY || 'dummy-key-for-build'
+});
 
 const BASE_STAGING_PROMPT = `You are a professional real estate photo stager. Your task is to add furniture, decor, and staging elements to this room photo.
 
@@ -28,6 +31,11 @@ export async function stageImage(
   customPrompt: string | null,
   variationIndex: number
 ): Promise<{ imageBase64: string; mimeType: string; text?: string }> {
+  // Runtime check for API key
+  if (!process.env.GEMINI_API_KEY || process.env.GEMINI_API_KEY === 'dummy-key-for-build') {
+    throw new Error('GEMINI_API_KEY is not configured. Please add it to your environment variables.');
+  }
+
   let fullPrompt = `${BASE_STAGING_PROMPT}\n\nStyle: ${stylePrompt}`;
   if (customPrompt) {
     fullPrompt += `\n\nAdditional instructions from user: ${customPrompt}`;
