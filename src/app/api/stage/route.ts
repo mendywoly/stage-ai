@@ -43,7 +43,7 @@ export async function POST(req: NextRequest) {
 
     const results = await Promise.all(
       images.map(async (image) => {
-        const uploadPath = saveUpload(image.base64, image.mimeType);
+        const uploadPath = await saveUpload(image.base64, image.mimeType);
 
         // Generate 1 variation for testing (change back to [0, 1, 2] for 3)
         const variations = await Promise.all(
@@ -56,7 +56,7 @@ export async function POST(req: NextRequest) {
                 customPrompt || null,
                 variationIndex
               );
-              const resultPath = saveResult(
+              const resultPath = await saveResult(
                 result.imageBase64,
                 result.mimeType
               );
