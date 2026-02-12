@@ -5,6 +5,7 @@ import { Header } from "@/components/header";
 import { ImageUploader, type UploadedFile } from "@/components/image-uploader";
 import { StyleSelector } from "@/components/style-selector";
 import { ResultsGallery } from "@/components/results-gallery";
+import { authenticatedFetch } from "@/lib/api";
 import type { StagingStyle } from "@/lib/styles";
 import { Sparkles, Loader2 } from "lucide-react";
 
@@ -48,7 +49,7 @@ export default function Home() {
       const controller = new AbortController();
       const timeout = setTimeout(() => controller.abort(), 5 * 60 * 1000); // 5 min timeout
 
-      const response = await fetch("/api/stage", {
+      const response = await authenticatedFetch("/api/stage", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { createClient } from "@supabase/supabase-js";
 import { stageImage } from "@/lib/gemini";
 import { saveUpload, saveResult } from "@/lib/storage";
 import { getStyleById } from "@/lib/styles";
@@ -19,6 +20,40 @@ interface StageRequest {
 
 export async function POST(req: NextRequest) {
   try {
+    // Get user from JWT token in request
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader) {
+      return NextResponse.json(
+        { error: "Unauthorized - please refresh page" },
+        { status: 401 }
+      );
+    }
+
+    // Create Supabase client with the user's JWT
+    const supabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      {
+        global: {
+          headers: {
+            Authorization: authHeader,
+          },
+        },
+      }
+    );
+
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
+
+    if (authError || !user) {
+      return NextResponse.json(
+        { error: "Unauthorized - please refresh page" },
+        { status: 401 }
+      );
+    }
+
     const body: StageRequest = await req.json();
     const { images, styleId, customPrompt } = body;
 
@@ -40,6 +75,16 @@ export async function POST(req: NextRequest) {
     const stylePrompt =
       style?.prompt ||
       "Stage this room with tasteful, modern furniture and decor.";
+
+    // TODO: Create generation record in database with user_id
+    // const generation = await supabaseAdmin.from('generations').insert({
+    //   user_id: user.id,
+    //   num_images: images.length,
+    //   style_id: styleId,
+    //   custom_prompt: customPrompt || null,
+    //   status: 'processing',
+    //   payment_status: 'promo', // or 'pending' if requires payment
+    // }).select().single();
 
     const results = await Promise.all(
       images.map(async (image) => {
