@@ -33,6 +33,12 @@ yarn-error.log*
 # env files (can opt-in for committing if needed)
 .env*
 
+# uploaded and generated images
+/public/uploads/*
+!/public/uploads/.gitkeep
+/public/results/*
+!/public/results/.gitkeep
+
 # vercel
 .vercel
 
